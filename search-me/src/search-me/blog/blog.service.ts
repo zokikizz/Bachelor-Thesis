@@ -1,3 +1,5 @@
+import { resolve } from 'dns';
+import { rejects } from 'assert';
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import { Blog, ListResponse, BlogItem } from './entity/blog.entity';
@@ -14,10 +16,11 @@ export class BlogService {
     }
 
     getBlogs(limit?: number): Promise<ListResponse> {
-        return new Promise(resolve => {
+        return new Promise((resolve, rejects) => {
             fs.readdir(this.baseRoute, (err, files) => {
                 if (err) {
                     this.logger.error(err);
+                    rejects(err);
                 }
                 const res = {
                     blogs: files.reduce((acc, currVal) =>
@@ -37,22 +40,26 @@ export class BlogService {
     }
 
     createBlog(blog: Blog): Promise<Blog> {
-        const filename = this.generateBlogFileName(blog.title);
-        const path = `${this.baseRoute}/${filename}`;
-        fs.writeFileSync(path, blog.content);
-        this.logger.debug(`blog ${filename} is created`);
-        return new Promise<Blog>((resolve) => resolve({
-            id: filename, title: blog.title, content: blog.content,
-        } as Blog));
+        return new Promise<Blog>((resolve, rejects) => {
+            const filename = this.generateBlogFileName(blog.title);
+            const path = `${this.baseRoute}/${filename}`;
+            fs.writeFile(path, blog.content, (err) => {
+                if (err) { this.logger.error(err); rejects(err); }
+                this.logger.debug(`blog ${filename} is created`);
+                resolve({ id: filename, title: blog.title, content: blog.content });
+            });
+        });
     }
 
     updateBlog(blog: Blog) {
-        const path = `${this.baseRoute}/${blog.title}`;
-        fs.writeFileSync(path, blog.content);
-        this.logger.debug(`blog ${blog.title} is updated`);
-        return new Promise<Blog>((resolve) => resolve({
-            id: blog.title, title: blog.title, content: blog.content,
-        } as Blog));
+        return new Promise<Blog>((resolve, rejects) => {
+            const path = `${this.baseRoute}/${blog.title}`;
+            fs.writeFile(path, blog.content, (err) => {
+                if (err) { this.logger.error(err); rejects(err); }
+                this.logger.debug(`blog ${blog.title} is updated`);
+                return resolve({ id: blog.title, title: blog.title, content: blog.content } as Blog);
+            });
+        });
     }
 
     setUp() {
@@ -87,10 +94,11 @@ export class BlogService {
     }
 
     filterBlogs(filterFuntion, term: number | string): Promise<ListResponse> {
-        return new Promise(resolve => {
+        return new Promise((resolve, rejects) => {
             fs.readdir(this.baseRoute, (err, files) => {
                 if (err) {
                     this.logger.error(err);
+                    rejects(err);
                 }
 
                 const res = {
@@ -107,9 +115,13 @@ export class BlogService {
     }
 
     deleteBlog(title: string): Promise<{ title: string }> {
-        fs.renameSync(`${this.baseRoute}/${title}`,
-        `${this.archiveRoute}/${title}`);
-        this.logger.debug(`blog ${title} deleted`);
-        return new Promise((resolve) => resolve({ title }) );
+        return new Promise((resolve, rejects) => {
+            fs.rename(`${this.baseRoute}/${title}`, `${this.archiveRoute}/${title}`, (err) => {
+                if (err) { throw err; rejects(err); }
+
+                this.logger.debug(`blog ${title} deleted`);
+                resolve({ title });
+            });
+        });
     }
 }
