@@ -1,3 +1,4 @@
+import { BLOG_BLOCKS } from './../shared/blog-builder-tags';
 import { BlogService } from './blog.service';
 import { Controller, Get, Param, Put, Body, Post, Delete } from '@nestjs/common';
 import { Blog, ListResponse } from './entity/blog.entity';
@@ -6,15 +7,14 @@ import { Blog, ListResponse } from './entity/blog.entity';
 export class BlogController {
     constructor(private blogService: BlogService) { }
     @Get()
-    getMany(): Promise<ListResponse>
-    {
+    getMany(): Promise<ListResponse> {
         return this.blogService.getBlogs();
     }
 
-    // @Get(':id')
-    // getOne(@Param('id') id: number): Promise<ListResponse> {
-    //     return this.blogService.getBlogById(id);
-    // }
+    @Get('uiid/:id')
+    getOne(@Param('id') id: string): Promise<ListResponse> {
+        return this.blogService.getBlogById(id);
+    }
 
     @Get(':title')
     getOneWithTitle(@Param('title') title: string): Promise<ListResponse> {
@@ -31,8 +31,7 @@ export class BlogController {
         @Param('title') title: string,
         @Body() dto: Blog,
     ) {
-        dto.title = title;
-        return this.blogService.updateBlog(dto);
+        return this.blogService.updateBlog(title, dto);
     }
 
     @Delete(':title')
