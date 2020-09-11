@@ -1,4 +1,3 @@
-import { BLOG_BLOCKS } from './../shared/blog-builder-tags';
 import { BlogService } from './blog.service';
 import { Controller, Get, Param, Put, Body, Post, Delete } from '@nestjs/common';
 import { Blog, ListResponse } from './entity/blog.entity';

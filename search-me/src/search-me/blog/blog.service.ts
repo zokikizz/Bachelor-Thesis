@@ -70,7 +70,6 @@ export class BlogService {
                 const updateBlog = this.contentBuilder.parseBlogFromString(data);
                 updateBlog.content = blog.content;
                 updateBlog.tags = blog.tags;
-                updateBlog.title = blog.title;
                 updateBlog.category = blog.category;
 
                 const content = this.contentBuilder.createBlogContent(
