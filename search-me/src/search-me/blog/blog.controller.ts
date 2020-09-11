@@ -11,12 +11,12 @@ export class BlogController {
     }
 
     @Get('uiid/:id')
-    getOne(@Param('id') id: string): Promise<ListResponse> {
+    getOne(@Param('id') id: string): Promise<ListResponse | Blog> {
         return this.blogService.getBlogById(id);
     }
 
     @Get(':title')
-    getOneWithTitle(@Param('title') title: string): Promise<ListResponse> {
+    getOneWithTitle(@Param('title') title: string): Promise<ListResponse | Blog> {
         return this.blogService.getBlogByTitle(title);
     }
 

@@ -31,12 +31,12 @@ export class BlogService {
         });
     }
 
-    getBlogById(id: string): Promise<ListResponse> {
-        return this.filterBlogs(this.filterById, id);
+    getBlogById(id: string): Promise<ListResponse | Blog> {
+        return this.filterBlogs(this.filterById, id, false);
     }
 
-    getBlogByTitle(title: string): Promise<ListResponse> {
-        return this.filterBlogs(this.filterByTitle, title);
+    getBlogByTitle(title: string): Promise<ListResponse | Blog> {
+        return this.filterBlogs(this.filterByTitle, title, true);
     }
 
     createBlog(blog: Blog): Promise<Blog> {
@@ -131,7 +131,7 @@ export class BlogService {
         return element.includes(title);
     }
 
-    filterBlogs(filterFuntion, term: number | string): Promise<ListResponse> {
+    filterBlogs(filterFuntion, term: number | string,  asArray: boolean = false): Promise<ListResponse | Blog> {
         return new Promise((resolve, rejects) => {
             fs.readdir(this.baseRoute, (err, files) => {
                 if (err) {
@@ -139,11 +139,23 @@ export class BlogService {
                     rejects(err);
                 }
 
-                const res = {
-                    blogs: files.filter(filterFuntion(term)).map(
-                        filename => this.createFileInfo(filename)),
-                };
-                resolve(res);
+                if (asArray) {
+                    const res: ListResponse = {
+                        blogs: files.filter(filterFuntion(term)).map(
+                            filename => this.createFileInfo(filename)),
+                     };
+                    resolve(res);
+                } else {
+                    const name = files.filter(filterFuntion(term))[0];
+                    fs.readFile(`${this.baseRoute}/${name}/${name}.txt`,
+                        'utf-8', (error, data) => {
+                        if (error) {
+                            this.logger.error(err);
+                            rejects(err);
+                        }
+                        resolve(this.contentBuilder.parseBlogFromString(data));
+                    });
+                }
             });
         });
     }
