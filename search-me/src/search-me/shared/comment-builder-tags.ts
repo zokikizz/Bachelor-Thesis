@@ -2,6 +2,7 @@ import { Block, IBlocks } from './block';
 
 const BLOCKTYPES = [
     'UIID',
+    'FILENAME',
     'AUTHOR',
     'TAGS',
     'CONTENT',

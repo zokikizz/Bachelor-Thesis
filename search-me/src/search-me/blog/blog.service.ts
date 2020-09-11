@@ -1,8 +1,8 @@
+import { CommentsService } from './../comments/comments.service';
 import { ContentBuilderService } from './../content-builder/content-builder.service';
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
-import { Blog, ListResponse, BlogItem, Props } from './entity/blog.entity';
-import { v4 as uuidv4 } from 'uuid';
+import {Blog, ListResponse, BlogItem, Props} from './entity/blog.entity';
 import * as npc from 'ncp';
 
 @Injectable()
@@ -11,7 +11,10 @@ export class BlogService {
     baseRoute: string = __dirname + '/blogs';
     archiveRoute: string = __dirname + '/trash';
 
-    constructor(private logger: Logger, private contentBuilder: ContentBuilderService) {
+    constructor(
+        private logger: Logger,
+        private contentBuilder: ContentBuilderService,
+        private commentService: CommentsService) {
         this.setUp();
     }
 
@@ -41,14 +44,14 @@ export class BlogService {
 
     createBlog(blog: Blog): Promise<Blog> {
         return new Promise<Blog>((resolve, rejects) => {
-            const generateProps = this.generateProps();
+            const generateProps = this.contentBuilder.generateProps();
             const foldername = this.generateBlogFileName(blog.title, generateProps);
             const filename = foldername + '.txt';
             const folderpath = `${this.baseRoute}/${foldername}`;
             const filepath = `${this.baseRoute}/${foldername}/${filename}`;
             const content = this.contentBuilder.createBlogContent(
                 blog.title, blog.content, 'author',
-                blog.category, blog.tags, generateProps.uiid,
+                blog.category, blog.tags, filename, generateProps.uiid,
             );
 
             fs.mkdir(folderpath, { recursive: true }, (err) => {
@@ -98,31 +101,6 @@ export class BlogService {
         return `${generateProps.uiid}|${title}-${generateProps.day}-${generateProps.month}-${generateProps.year}|${generateProps.hours}:${generateProps.minutes}:${generateProps.seconds}(${generateProps.miliseconds})`;
     }
 
-    private generateProps(): Props {
-
-        const currentTime = new Date();
-        const month = currentTime.getMonth() + 1;
-        const day = currentTime.getDate();
-        const year = currentTime.getFullYear();
-        const hours = currentTime.getHours();
-        const minutes = currentTime.getMinutes();
-        const seconds = currentTime.getSeconds();
-        const miliseconds = currentTime.getMilliseconds();
-        const uiid = uuidv4();
-
-        return {
-            currentTime,
-            month,
-            day,
-            year,
-            hours,
-            minutes,
-            seconds,
-            miliseconds,
-            uiid,
-        };
-    }
-
     filterById = (id: string) => {
         return (element) => element.includes(id);
     }
@@ -147,13 +125,16 @@ export class BlogService {
                     resolve(res);
                 } else {
                     const name = files.filter(filterFuntion(term))[0];
-                    fs.readFile(`${this.baseRoute}/${name}/${name}.txt`,
-                        'utf-8', (error, data) => {
+                    fs.readFile(`${this.baseRoute}/${name}/${name}.txt`, 'utf-8', (error, data) => {
                         if (error) {
                             this.logger.error(err);
                             rejects(err);
                         }
-                        resolve(this.contentBuilder.parseBlogFromString(data));
+                        const res = this.contentBuilder.parseBlogFromString(data);
+                        this.commentService.getCommentsForBlog(res.uiid).then(value => {
+                            res.comments = value;
+                            resolve(res);
+                        });
                     });
                 }
             });

@@ -1,7 +1,9 @@
+import { Comment } from './../comments/entity/comment.entity';
 import { COMMENT_BLOCKS } from './../shared/comment-builder-tags';
 import { BLOG_BLOCKS } from './../shared/blog-builder-tags';
 import { Injectable, Logger } from '@nestjs/common';
-import { Blog } from '../blog/entity/blog.entity';
+import { Blog, Props } from '../blog/entity/blog.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class ContentBuilderService {
@@ -10,13 +12,13 @@ export class ContentBuilderService {
 
     createBlogContent(
         title: string, content: string, author: string,
-        category: string, tags: string[], uiid?, creationDate?: Date | number,
+        category: string, tags: string[], filename, uiid?, creationDate?: Date | number,
     ): string {
         let resultContent = '';
 
         const inputData = {
-            title, content, author, category,
-            tags: tags.reduce((acc, current) => `${acc}#${current}`, ''), uiid,
+            title, content, author, category, filename,
+            tags: tags ? tags.reduce((acc, current) => `${acc}#${current}`, '') : '', uiid,
             creationdate: creationDate ? creationDate : Date.now(),
             modifieddate: Date.now(),
         };
@@ -38,12 +40,13 @@ export class ContentBuilderService {
         return parsedObject;
     }
 
-    createCommentContent(author: string, tags: string[], content: string, uiid, creationDate: Date | number) {
+    createCommentContent(author: string, tags: string[], filename: string, content: string, uiid, creationDate?: Date | number) {
         let resultContent = '';
 
         const inputData = {
-            content, author, tags: tags.reduce((acc, current) => `${acc}#${current}`, ''),
+            content, author, tags: tags ? tags.reduce((acc, current) => `${acc}#${current}`, '') : '',
             uiid,
+            filename,
             creationdate: creationDate ? creationDate : Date.now(),
             modifieddate: Date.now(),
         };
@@ -56,8 +59,8 @@ export class ContentBuilderService {
 
      }
 
-    parseCommentContent(content: string) {
-        const parsedObject = {};
+    parseCommentFromString(content: string): Comment {
+        const parsedObject: Comment = {};
 
         for (const tagType of Object.keys(COMMENT_BLOCKS)) {
             parsedObject[tagType.toLocaleLowerCase()] = COMMENT_BLOCKS[tagType].parse(content);
@@ -68,5 +71,30 @@ export class ContentBuilderService {
 
     objectParseForLogging(obj) {
         return Object.keys(obj).map(value => value + ':' + obj[value]);
+    }
+
+    generateProps(): Props {
+
+        const currentTime = new Date();
+        const month = currentTime.getMonth() + 1;
+        const day = currentTime.getDate();
+        const year = currentTime.getFullYear();
+        const hours = currentTime.getHours();
+        const minutes = currentTime.getMinutes();
+        const seconds = currentTime.getSeconds();
+        const miliseconds = currentTime.getMilliseconds();
+        const uiid = uuidv4();
+
+        return {
+            currentTime,
+            month,
+            day,
+            year,
+            hours,
+            minutes,
+            seconds,
+            miliseconds,
+            uiid,
+        };
     }
 }

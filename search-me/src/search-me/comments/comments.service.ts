@@ -1,36 +1,104 @@
 import { Comment } from './entity/comment.entity';
 import { ContentBuilderService } from './../content-builder/content-builder.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { resolve } from 'dns';
+import * as fs from 'fs';
+import { Props } from '../blog/entity/blog.entity';
 
 @Injectable()
 export class CommentsService {
 
-    baseRoute: string = __dirname + '../blog/blogs';
+    readonly baseRoute: string = __dirname + '/../blog/blogs';
+    readonly commentRoute = 'comments';
     // archiveRoute: string = __dirname + '/trash';
-    constructor(private logger: Logger, private contentBuilder: ContentBuilderService) {}
+    constructor(
+        private logger: Logger,
+        private contentBuilder: ContentBuilderService) { }
 
-    createComment(commnet: Comment): Promise<Comment> {
+    createComment(title: string, comment: Comment): Promise<Comment> {
         return new Promise((resolve, reject) => {
-            resolve(commnet);
+            fs.exists(`${this.baseRoute}/${title}/${this.commentRoute}`, exist => {
+                if (!exist) {
+                    fs.mkdir(`${this.baseRoute}/${title}/${this.commentRoute}`, (err) => {
+                        this.createNewComment(title, comment, resolve, reject);
+                    });
+                } else {
+                    this.createNewComment(title, comment, resolve, reject);
+                }
+
+            });
         });
     }
 
-    updateComment(uiid: string, commnet: Comment): Promise<Comment> {
+    generateCommentFilename(props: Props, author: string): string {
+        return `${props.uiid}|${author}|${props.day}-${props.month}-${props.year}|${props.hours}:${props.minutes}:${props.seconds}(${props.miliseconds}).txt`;
+    }
+
+    updateComment(title: string, commentFileName, commnet: Comment): Promise<Comment> {
         return new Promise((resolve, reject) => {
-            resolve(commnet);
+            const commentFilenamePath = `${this.baseRoute}/${title}/${this.commentRoute}/${commentFileName}`;
+            fs.readFile(commentFilenamePath, 'utf-8', (err, data) => {
+                if (err) { this.logger.error(err); reject(err); }
+                const commentForUpdate = this.contentBuilder.parseCommentFromString(data);
+                commentForUpdate.content = commnet.content;
+                commentForUpdate.tags = commnet.tags;
+                const parsedComment = this.contentBuilder.createCommentContent(commentForUpdate.author,
+                    commentForUpdate.tags, commentForUpdate.filename, commentForUpdate.content, commentForUpdate.uiid,
+                    commentForUpdate.creationdate);
+                fs.writeFile(commentFilenamePath, parsedComment, (error) => {
+                    if (error) { this.logger.error(error); reject(error); }
+
+                    resolve(commentForUpdate);
+                });
+            });
         });
     }
 
-    deleteComment(uiid: string): Promise<string> {
+    deleteComment(title: string, filename): Promise<string> {
         return new Promise((resolve, reject) => {
-            resolve(uiid);
+            fs.unlink(`${this.baseRoute}/${title}/${this.commentRoute}/${filename}`, (err) => {
+                if (err) { this.logger.error(err); reject(err); }
+                this.logger.debug(`comment ${filename} deleted.`);
+                resolve(filename);
+            });
         });
     }
 
-    getCommentsForBlog(bloguiid: string): Promise<{ comments: Comment[]}> {
+    getCommentsForBlog(title: string): Promise<Comment[]> {
         return new Promise((resolve, reject) => {
-            return resolve({ comments: [] });
+            fs.exists(`${this.baseRoute}/${title}/${this.commentRoute}`, exist => {
+                if (exist) {
+                    fs.readdir(`${this.baseRoute}/${title}/${this.commentRoute}`, (err, files) => {
+                        if (err) {
+                            this.logger.error(err);
+                            reject(err);
+                        }
+
+                        const comments: Comment[] = [];
+
+                        for (const commentFile of files) {
+                            fs.readFile(`${this.baseRoute}/${title}/${this.commentRoute}/${commentFile}`, 'utf-8', (error, data) => {
+                                comments.push(this.contentBuilder.parseCommentFromString(data));
+                            });
+                        }
+                        resolve(comments);
+                    });
+                } else {
+                    resolve([]);
+                }
+
+            });
+        });
+    }
+
+    createNewComment(title: string, comment: Comment, resolve, reject) {
+        const props = this.contentBuilder.generateProps();
+        const filename = this.generateCommentFilename(props, comment.author);
+        const commentContent = this.contentBuilder.createCommentContent(comment.author, comment.tags, filename, comment.content, props.uiid);
+        fs.writeFile(`${this.baseRoute}/${title}/${this.commentRoute}/${filename}`, commentContent, (error) => {
+            if (error) { this.logger.error(error); reject(error); }
+            this.logger.debug(`created comment ${filename}.`);
+            resolve(this.contentBuilder.parseCommentFromString(commentContent));
+
         });
     }
 }
