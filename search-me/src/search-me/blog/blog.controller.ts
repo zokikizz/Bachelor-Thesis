@@ -1,27 +1,33 @@
 import { BlogService } from './blog.service';
-import { Controller, Get, Param, Put, Body, Post, Delete } from '@nestjs/common';
-import { Blog, ListResponse } from './entity/blog.entity';
+import {
+    Controller, Get, Param, Put, Body, Post, Delete,
+    HttpStatus, HttpCode, UseFilters, HttpException,
+} from '@nestjs/common';
+import { Blog } from './entity/blog.entity';
+import { HttpExceptionFilter } from '../shared/http-exception-filter';
 
 @Controller('blog')
+@UseFilters(new HttpExceptionFilter())
 export class BlogController {
     constructor(private blogService: BlogService) { }
     @Get()
-    getMany(): Promise<ListResponse> {
+    getMany() {
         return this.blogService.getBlogs();
     }
 
     @Get('uiid/:id')
-    getOne(@Param('id') id: string): Promise<ListResponse | Blog> {
+    async getOne(@Param('id') id: string) {
         return this.blogService.getBlogById(id);
     }
 
     @Get(':title')
-    getOneWithTitle(@Param('title') title: string): Promise<ListResponse | Blog> {
+    getOneWithTitle(@Param('title') title: string) {
         return this.blogService.getBlogByTitle(title);
     }
 
     @Post()
-    createOne(@Body() dto: Blog): Promise<Blog> {
+    @HttpCode(HttpStatus.CREATED)
+    createOne(@Body() dto: Blog) {
         return this.blogService.createBlog(dto);
     }
 

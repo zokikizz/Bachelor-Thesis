@@ -53,40 +53,29 @@ export class CommentsService {
         });
     }
 
-    deleteComment(title: string, filename): Promise<string> {
-        return new Promise((resolve, reject) => {
-            fs.unlink(`${this.baseRoute}/${title}/${this.commentRoute}/${filename}`, (err) => {
-                if (err) { this.logger.error(err); reject(err); }
-                this.logger.debug(`comment ${filename} deleted.`);
-                resolve(filename);
-            });
+    deleteComment(title: string, filename: string): Promise<{ filename: string }> {
+        return fs.promises.unlink(`${this.baseRoute}/${title}/${this.commentRoute}/${filename}`).then(() => {
+            return { filename };
         });
     }
 
     getCommentsForBlog(title: string): Promise<Comment[]> {
-        return new Promise((resolve, reject) => {
-            fs.exists(`${this.baseRoute}/${title}/${this.commentRoute}`, exist => {
-                if (exist) {
-                    fs.readdir(`${this.baseRoute}/${title}/${this.commentRoute}`, (err, files) => {
-                        if (err) {
-                            this.logger.error(err);
-                            reject(err);
-                        }
-
-                        const comments: Comment[] = [];
-
-                        for (const commentFile of files) {
-                            fs.readFile(`${this.baseRoute}/${title}/${this.commentRoute}/${commentFile}`, 'utf-8', (error, data) => {
-                                comments.push(this.contentBuilder.parseCommentFromString(data));
-                            });
-                        }
-                        resolve(comments);
-                    });
-                } else {
-                    resolve([]);
+        return fs.promises.stat(`${this.baseRoute}/${title}/${this.commentRoute}`).then(stat => {
+                return fs.promises.readdir(`${this.baseRoute}/${title}/${this.commentRoute}`).then(files => {
+                    return files;
+                });
+            }).catch(() => {
+                return [];
+            }).then((files: string[]) => {
+                const promises = [];
+                for (const commentFile of files) {
+                    promises.push(
+                        fs.promises.readFile(`${this.baseRoute}/${title}/${this.commentRoute}/${commentFile}`, { encoding: 'utf-8' }),
+                    );
                 }
-
-            });
+                return Promise.all(promises).then(comments =>
+                    comments.map(comment => this.contentBuilder.parseCommentFromString(comment)),
+                );
         });
     }
 

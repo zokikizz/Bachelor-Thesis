@@ -1,9 +1,8 @@
 import { CommentsService } from './../comments/comments.service';
 import { ContentBuilderService } from './../content-builder/content-builder.service';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import * as fs from 'fs';
 import {Blog, ListResponse, BlogItem, Props} from './entity/blog.entity';
-import * as npc from 'ncp';
 
 @Injectable()
 export class BlogService {
@@ -18,23 +17,18 @@ export class BlogService {
         this.setUp();
     }
 
-    getBlogs(limit?: number): Promise<ListResponse> {
-        return new Promise((resolve, rejects) => {
-            fs.readdir(this.baseRoute, (err, files) => {
-                if (err) {
-                    this.logger.error(err);
-                    rejects(err);
-                }
-                const res = {
-                    blogs: files.reduce((acc, currVal) =>
-                        [...acc, this.createFileInfo(currVal)], []),
-                };
-                resolve(res);
-            });
+    getBlogs(limit?: number): Promise<ListResponse | HttpException> {
+        return fs.promises.readdir(this.baseRoute).then(files => {
+            const blogs: BlogItem[] = files.reduce((acc, currVal) =>
+                [...acc, this.createFileInfo(currVal)], []);
+            return { blogs };
+        }).catch(err => {
+            this.logger.error(err);
+            return new HttpException(err, HttpStatus.INTERNAL_SERVER_ERROR);
         });
     }
 
-    getBlogById(id: string): Promise<ListResponse | Blog> {
+    async getBlogById(id: string): Promise<ListResponse | Blog> {
         return this.filterBlogs(this.filterById, id, false);
     }
 
@@ -42,49 +36,43 @@ export class BlogService {
         return this.filterBlogs(this.filterByTitle, title, true);
     }
 
-    createBlog(blog: Blog): Promise<Blog> {
-        return new Promise<Blog>((resolve, rejects) => {
-            const generateProps = this.contentBuilder.generateProps();
-            const foldername = this.generateBlogFileName(blog.title, generateProps);
-            const filename = foldername + '.txt';
-            const folderpath = `${this.baseRoute}/${foldername}`;
-            const filepath = `${this.baseRoute}/${foldername}/${filename}`;
-            const content = this.contentBuilder.createBlogContent(
-                blog.title, blog.content, 'author',
-                blog.category, blog.tags, filename, generateProps.uiid,
-            );
+    createBlog(blog: Blog): Promise<Blog | HttpException> {
+        const generateProps = this.contentBuilder.generateProps();
+        const foldername = this.generateBlogFileName(blog.title, generateProps);
+        const filename = foldername + '.txt';
+        const folderpath = `${this.baseRoute}/${foldername}`;
+        const filepath = `${this.baseRoute}/${foldername}/${filename}`;
+        const content = this.contentBuilder.createBlogContent(
+            blog.title, blog.content, 'author',
+            blog.category, blog.tags, filename, generateProps.uiid,
+        );
+        console.log(content);
 
-            fs.mkdir(folderpath, { recursive: true }, (err) => {
-                if (err) { this.logger.error(err); rejects(err); }
-                fs.writeFile(filepath, content, (error) => {
-                    if (error) { this.logger.error(error); rejects(err); }
-                    this.logger.debug(`blog ${filename} is created`);
-                    resolve(this.contentBuilder.parseBlogFromString(content));
-                });
+        return fs.promises.mkdir(folderpath).then(() => {
+            return fs.promises.writeFile(filepath, content).then(() => {
+                this.logger.debug(`blog ${filename} is created`);
+                return this.contentBuilder.parseBlogFromString(content);
             });
-        });
+        }).catch(e => new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     updateBlog(title: string, blog: Blog) {
-        return new Promise<Blog>((resolve, rejects) => {
-            const path = `${this.baseRoute}/${title}/${title}.txt`;
-            fs.readFile(path, 'utf8', (error, data) => {
-                if (error) { this.logger.error(error); rejects(error); }
-                const updateBlog = this.contentBuilder.parseBlogFromString(data);
-                updateBlog.content = blog.content;
-                updateBlog.tags = blog.tags;
-                updateBlog.category = blog.category;
 
-                const content = this.contentBuilder.createBlogContent(
-                    updateBlog.title, updateBlog.content, updateBlog.author, updateBlog.category,
-                    updateBlog.tags, updateBlog.uiid, updateBlog.creationdate);
-                fs.writeFile(path, content, (err) => {
-                    if (err) { this.logger.error(err); rejects(err); }
-                    this.logger.debug(`blog ${blog.title} is updated`);
-                    return resolve(updateBlog);
-                });
+        const path = `${this.baseRoute}/${title}/${title}.txt`;
+
+        return fs.promises.readFile(path, { encoding: 'utf-8' }).then(data => {
+            const updateBlog = this.contentBuilder.parseBlogFromString(data);
+            updateBlog.content = blog.content;
+            updateBlog.tags = blog.tags;
+            updateBlog.category = blog.category;
+            const content = this.contentBuilder.createBlogContent(
+                updateBlog.title, updateBlog.content, updateBlog.author, updateBlog.category,
+                updateBlog.tags, updateBlog.filename, updateBlog.uiid, updateBlog.creationdate);
+            return fs.promises.writeFile(path, content).then(() => {
+                this.logger.debug(`blog ${blog.title} is updated`);
+                return updateBlog;
             });
-        });
+        }).catch(e => new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     setUp() {
@@ -98,7 +86,7 @@ export class BlogService {
     }
 
     private generateBlogFileName(title: string, generateProps: Props) {
-        return `${generateProps.uiid}|${title}-${generateProps.day}-${generateProps.month}-${generateProps.year}|${generateProps.hours}:${generateProps.minutes}:${generateProps.seconds}(${generateProps.miliseconds})`;
+        return `${generateProps.day}-${generateProps.month}-${generateProps.year}|${generateProps.hours}:${generateProps.minutes}:${generateProps.seconds}(${generateProps.miliseconds})|${title}|${generateProps.uiid}`;
     }
 
     filterById = (id: string) => {
@@ -109,35 +97,25 @@ export class BlogService {
         return element.includes(title);
     }
 
-    filterBlogs(filterFuntion, term: number | string,  asArray: boolean = false): Promise<ListResponse | Blog> {
-        return new Promise((resolve, rejects) => {
-            fs.readdir(this.baseRoute, (err, files) => {
-                if (err) {
-                    this.logger.error(err);
-                    rejects(err);
-                }
+    async filterBlogs(filterFuntion, term: number | string, asArray: boolean = false): Promise<ListResponse | Blog> {
 
-                if (asArray) {
-                    const res: ListResponse = {
-                        blogs: files.filter(filterFuntion(term)).map(
-                            filename => this.createFileInfo(filename)),
-                     };
-                    resolve(res);
-                } else {
-                    const name = files.filter(filterFuntion(term))[0];
-                    fs.readFile(`${this.baseRoute}/${name}/${name}.txt`, 'utf-8', (error, data) => {
-                        if (error) {
-                            this.logger.error(err);
-                            rejects(err);
-                        }
-                        const res = this.contentBuilder.parseBlogFromString(data);
-                        this.commentService.getCommentsForBlog(res.uiid).then(value => {
-                            res.comments = value;
-                            resolve(res);
-                        });
+        return fs.promises.readdir(this.baseRoute).then(files => {
+            if (asArray) {
+                const res: ListResponse = {
+                    blogs: files.filter(filterFuntion(term)).map(
+                        filename => this.createFileInfo(filename)),
+                 };
+                return res;
+            } else {
+                const name = files.filter(filterFuntion(term))[0];
+                return fs.promises.readFile(`${this.baseRoute}/${name}/${name}.txt`, { encoding: 'utf-8' }).then(data => {
+                    const res = this.contentBuilder.parseBlogFromString(data);
+                    return this.commentService.getCommentsForBlog(res.filename.replace(/\.[^.]*$/, '')).then(comments => {
+                        res.comments = comments;
+                        return res;
                     });
-                }
-            });
+                });
+            }
         });
     }
 
@@ -146,15 +124,21 @@ export class BlogService {
     }
 
     deleteBlog(title: string): Promise<{ title: string }> {
-        return new Promise((resolve, rejects) => {
-            npc(`${this.baseRoute}/${title}`, `${this.archiveRoute}/${title}`, (err) => {
-                if (err) { this.logger.error(err); rejects(err); }
-                fs.rmdir(`${this.baseRoute}/${title}`, { recursive: true }, (error) => {
-                    if (error) { this.logger.error(error); rejects(error); }
-                    this.logger.debug(`blog ${title} deleted`);
-                    resolve({ title });
-                });
+        return fs.promises.rename(`${this.baseRoute}/${title}`, `${this.archiveRoute}/${title}`).then(() => {
+            return fs.promises.rmdir(`${this.baseRoute}/${title}`, { recursive: true }).then(() => {
+                return { title };
             });
         });
+        // TODO: REMOVE npc if code above work correctly (test again)
+        // return new Promise((resolve, rejects) => {
+        //     npc(`${this.baseRoute}/${title}`, `${this.archiveRoute}/${title}`, (err) => {
+        //         if (err) { this.logger.error(err); rejects(err); }
+        //         fs.rmdir(`${this.baseRoute}/${title}`, { recursive: true }, (error) => {
+        //             if (error) { this.logger.error(error); rejects(error); }
+        //             this.logger.debug(`blog ${title} deleted`);
+        //             resolve({ title });
+        //         });
+        //     });
+        // });
     }
 }

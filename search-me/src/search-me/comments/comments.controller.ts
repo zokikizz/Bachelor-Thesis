@@ -1,8 +1,10 @@
 import { Comment } from './entity/comment.entity';
 import { CommentsService } from './comments.service';
-import { Controller, Param, Put, Body, Post, Delete, ValidationPipe } from '@nestjs/common';
+import { Controller, Param, Put, Body, Post, Delete, UseFilters } from '@nestjs/common';
+import { HttpExceptionFilter } from '../shared/http-exception-filter';
 
 @Controller('comments')
+@UseFilters(new HttpExceptionFilter())
 export class CommentsController {
 
     constructor(private commentService: CommentsService) {}
@@ -27,8 +29,8 @@ export class CommentsController {
     @Delete(':title/:commentFilename')
     async deleteOne(
         @Param('title') title: string,
-        @Param('commentFilename') filename: string
-    ): Promise<string> {
+        @Param('commentFilename') filename: string,
+    ): Promise<{ filename: string }> {
         return this.commentService.deleteComment(title, filename);
     }
 }
