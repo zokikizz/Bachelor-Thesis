@@ -13,7 +13,7 @@ export class CommentsController {
     createOne(
         @Param('title') title: string,
         @Body() dto: Comment,
-    ): Promise<Comment> {
+    ) {
             return this.commentService.createComment(title, dto);
     }
 

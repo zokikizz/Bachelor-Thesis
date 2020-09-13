@@ -1,6 +1,6 @@
 import { Comment } from './entity/comment.entity';
 import { ContentBuilderService } from './../content-builder/content-builder.service';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import * as fs from 'fs';
 import { Props } from '../blog/entity/blog.entity';
 
@@ -14,43 +14,30 @@ export class CommentsService {
         private logger: Logger,
         private contentBuilder: ContentBuilderService) { }
 
-    createComment(title: string, comment: Comment): Promise<Comment> {
-        return new Promise((resolve, reject) => {
-            fs.exists(`${this.baseRoute}/${title}/${this.commentRoute}`, exist => {
-                if (!exist) {
-                    fs.mkdir(`${this.baseRoute}/${title}/${this.commentRoute}`, (err) => {
-                        this.createNewComment(title, comment, resolve, reject);
-                    });
-                } else {
-                    this.createNewComment(title, comment, resolve, reject);
-                }
-
-            });
-        });
+    createComment(title: string, comment: Comment) {
+        return fs.promises.stat(`${this.baseRoute}/${title}/${this.commentRoute}`).then(() =>
+            this.createNewComment(title, comment),
+        ).catch(() => fs.promises.mkdir(`${this.baseRoute}/${title}/${this.commentRoute}`).then(() => {
+                return this.createNewComment(title, comment);
+            }),
+        ).catch(e => new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     generateCommentFilename(props: Props, author: string): string {
-        return `${props.uiid}|${author}|${props.day}-${props.month}-${props.year}|${props.hours}:${props.minutes}:${props.seconds}(${props.miliseconds}).txt`;
+        return `${props.day}-${props.month}-${props.year}|${props.hours}:${props.minutes}:${props.seconds}(${props.miliseconds})|${author}|${props.uiid}.txt`;
     }
 
-    updateComment(title: string, commentFileName, commnet: Comment): Promise<Comment> {
-        return new Promise((resolve, reject) => {
-            const commentFilenamePath = `${this.baseRoute}/${title}/${this.commentRoute}/${commentFileName}`;
-            fs.readFile(commentFilenamePath, 'utf-8', (err, data) => {
-                if (err) { this.logger.error(err); reject(err); }
-                const commentForUpdate = this.contentBuilder.parseCommentFromString(data);
-                commentForUpdate.content = commnet.content;
-                commentForUpdate.tags = commnet.tags;
-                const parsedComment = this.contentBuilder.createCommentContent(commentForUpdate.author,
-                    commentForUpdate.tags, commentForUpdate.filename, commentForUpdate.content, commentForUpdate.uiid,
-                    commentForUpdate.creationdate);
-                fs.writeFile(commentFilenamePath, parsedComment, (error) => {
-                    if (error) { this.logger.error(error); reject(error); }
-
-                    resolve(commentForUpdate);
-                });
-            });
-        });
+    updateComment(title: string, commentFileName, commnet: Comment) {
+        const commentFilenamePath = `${this.baseRoute}/${title}/${this.commentRoute}/${commentFileName}`;
+        return fs.promises.readFile(commentFilenamePath, { encoding: 'utf-8' }).then((data) => {
+            const commentForUpdate = this.contentBuilder.parseCommentFromString(data);
+            commentForUpdate.content = commnet.content;
+            commentForUpdate.tags = commnet.tags;
+            const parsedComment = this.contentBuilder.createCommentContent(commentForUpdate.author,
+                commentForUpdate.tags, commentForUpdate.filename, commentForUpdate.content, commentForUpdate.uiid,
+                commentForUpdate.creationdate);
+            return fs.promises.writeFile(commentFilenamePath, parsedComment).then(() => commentForUpdate);
+        }).catch(e => new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     deleteComment(title: string, filename: string): Promise<{ filename: string }> {
@@ -79,15 +66,13 @@ export class CommentsService {
         });
     }
 
-    createNewComment(title: string, comment: Comment, resolve, reject) {
+    createNewComment(title: string, comment: Comment) {
         const props = this.contentBuilder.generateProps();
         const filename = this.generateCommentFilename(props, comment.author);
         const commentContent = this.contentBuilder.createCommentContent(comment.author, comment.tags, filename, comment.content, props.uiid);
-        fs.writeFile(`${this.baseRoute}/${title}/${this.commentRoute}/${filename}`, commentContent, (error) => {
-            if (error) { this.logger.error(error); reject(error); }
+        return fs.promises.writeFile(`${this.baseRoute}/${title}/${this.commentRoute}/${filename}`, commentContent).then(() => {
             this.logger.debug(`created comment ${filename}.`);
-            resolve(this.contentBuilder.parseCommentFromString(commentContent));
-
+            return this.contentBuilder.parseCommentFromString(commentContent);
         });
     }
 }
