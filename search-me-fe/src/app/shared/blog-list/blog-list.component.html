@@ -1,0 +1,30 @@
+<!-- Blog section  -->
+<div class="section">
+    <div class="container">
+        <div class="row col-spacing-50">
+            <!-- Blog Posts -->
+            <div class="col-12 col-lg-8 order-lg-2">
+
+                <app-blog *ngFor="let blog of blogList" [blog]="blog"></app-blog>
+
+                <!-- pagination -->
+                <nav>
+                    <ul class="pagination justify-content-center margin-top-70">
+                        <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                    </ul>
+                </nav>
+
+            </div>
+
+            <!-- Blog Sidebar -->
+            <div class="col-12 col-lg-4 order-lg-1 sidebar-wrapper">
+                <app-blog-sidebar></app-blog-sidebar>
+            </div>
+        </div><!-- end row -->
+    </div><!-- end container -->
+</div>
+<!-- end Blog section -->
