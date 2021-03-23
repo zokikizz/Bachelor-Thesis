@@ -1,0 +1,96 @@
+<!-- <p>{{ blog | json }}</p>-->
+
+
+
+
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-10 offset-md-1">
+                <h2 class="font-weight-normal">Post title</h2>
+                <ul class="list-inline-dash">
+                    <!-- <li><a href="#">by Admin</a></li> -->
+                    <li><a href="#">{{blog?.category}}</a></li>
+                    <li><a href="#">{{blog?.createdAt | date}}</a></li>
+                </ul>
+            </div>
+        </div><!-- end row -->
+    </div><!-- end container -->
+</div>
+
+<!-- Featured Image -->
+<div class="container" *ngIf="blog">
+    <img src="{{ 'http://localhost:3333/api/assets/' + blog.blogFolder + '/' + blog.imagePath }}" alt="">
+</div><!-- end container -->
+<!-- end Featured Image -->
+
+<!-- Post Content -->
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-10 offset-md-1">
+
+                <p>
+                    {{ blog?.content }}
+                </p>
+
+
+                <!-- this part is static and rethink to us it for qoutes -->
+                <!-- <blockquote class="blockquote blockquote-style-3 margin-top-20">
+                    <p>Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim.</p>
+                    <footer class="blockquote-footer"><h6 class="font-family-tertiary font-small font-weight-normal uppercase">Alexander Warren</h6></footer>
+                </blockquote>
+
+                <p>Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo.</p>
+
+                <div class="margin-top-20 margin-bottom-20">
+                    <div class="row col-spacing-20">
+                        <div class="col-12 col-md-6">
+                            <img src="../../assets/images/col-2.jpg" alt="">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <img src="../../assets/images/col-2.jpg" alt="">
+                        </div>
+                    </div>
+                </div>
+
+                <p>You can use the mark tag to <mark>highlight</mark> text. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt.</p> -->
+
+            </div>
+        </div><!-- end row -->
+    </div><!-- end container -->
+</div>
+<!-- end Post Content -->
+
+<div class="section-xs border-top">
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <h6 class="font-family-tertiary font-small font-weight-normal uppercase">Tags</h6>
+                <ul class="list-inline-sm">
+                    <li *ngFor="let tag of blogTags"><a href="#">{{ tag | titlecase }}</a></li>
+                </ul>
+            </div>
+            <div class="col-6 text-right">
+                <h6 class="font-family-tertiary font-small font-weight-normal uppercase">Share On</h6>
+                <ul class="list-inline">
+                    <li><a href="https://www.facebook.com/sharer/sharer.php?u=#http://localhost:4200"><i class="fab fa-facebook-f"></i></a></li>
+                    <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+                    <li><a href="#"><i class="fab fa-google-plus-g"></i></a></li>
+                </ul>
+            </div>
+        </div><!-- end row -->
+    </div><!-- end container -->
+</div>
+
+<blog-workspace-comment-list></blog-workspace-comment-list>
+
+<blog-workspace-create-comment></blog-workspace-create-comment>
+
+
+<!-- Scroll to top button -->
+<div class="scrolltotop">
+    <a class="button-circle button-circle-sm button-circle-dark" href="#"><i class="ti-arrow-up"></i></a>
+</div>
+<!-- end Scroll to top button -->

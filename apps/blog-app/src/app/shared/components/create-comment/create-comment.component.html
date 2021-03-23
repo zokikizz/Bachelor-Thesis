@@ -1,0 +1,23 @@
+<!-- Write Comment section -->
+<div class="section" [formGroup]="createCommentForm">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-10 offset-md-1">
+                <h4 class="font-weight-normal margin-bottom-50">Write a Comment</h4>
+                <form>
+                    <div class="form-row">
+                        <div class="col-12 col-sm-6">
+                            <input type="text" name="name" placeholder="Name" formControlName='name'>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <input type="email" name="email" placeholder="E-Mail" formControlName="email">
+                        </div>
+                    </div>
+                    <textarea name="comment" placeholder="Comment" formControlName="comment"></textarea>
+                    <button class="button button-lg button-outline-grey" (click)="createComment()">Post Comment</button>
+                </form>
+            </div>
+        </div><!-- end row -->
+    </div><!-- end container -->
+</div>
+<!-- end Write Comment section -->

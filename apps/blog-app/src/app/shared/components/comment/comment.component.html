@@ -1,0 +1,11 @@
+<div class="comment-box" *ngIf="comment">
+    <div class="comment-user-avatar bg-dark">
+        <i class="fa fa-user text-white"></i>
+    </div>
+    <div class="comment-content">
+        <!-- TODO: fix date -->
+        <span class="comment-time">{{ commentCreated }}</span>
+        <h6 class="font-weight-normal">{{ comment.name }}</h6>
+        <p>{{ comment.comment }}</p>
+    </div>
+</div>

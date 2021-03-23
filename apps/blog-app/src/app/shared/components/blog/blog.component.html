@@ -1,0 +1,22 @@
+<div class="margin-bottom-50">
+    <div class="hoverbox-8">
+        <a href="#">
+            <img src="{{ 'http://localhost:3333/api/assets/' + blog.blogFolder + '/' + blog.imagePath }}" alt="">
+        </a>
+    </div>
+    <div class="margin-top-30">
+        <div class="d-flex justify-content-between margin-bottom-10">
+            <div class="d-inline-flex">
+                <a class="font-family-tertiary font-small font-weight-normal uppercase" [routerLink]="'/category/' + blog.category">{{ blog.category }}</a>
+            </div>
+            <div class="d-inline-flex">
+                <span class="font-small">{{ blog.createdAt | date }}</span>
+            </div>
+        </div>
+        <h5><a [routerLink]="'/blog/' + blog.id">{{blog.title}}</a></h5>
+        <p>{{ blog.miniContent }}</p>
+        <div class="margin-top-20">
+            <a class="text-button button-font-2" [routerLink]="'/blog/' + blog.id">Read More</a>
+        </div>
+    </div>
+</div>
