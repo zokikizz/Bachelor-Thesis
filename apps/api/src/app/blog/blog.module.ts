@@ -24,7 +24,7 @@ export class BlogModule implements OnModuleInit {
 
     onModuleInit() {
         this.bis.blogMapping().then(() => {
-           this.setUpBlogs();
+           // this.setUpBlogs();
         });
     }
 

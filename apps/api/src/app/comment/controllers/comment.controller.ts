@@ -1,3 +1,4 @@
+import { MailService } from '../../mail/mail.service';
 import { CommentIndexService } from './../../search/services/comment-index/comment-index.service';
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { Comment } from '@blog-workspace/api-interfaces';
@@ -6,7 +7,9 @@ import { Comment } from '@blog-workspace/api-interfaces';
 @Controller('comment')
 export class CommentController {
 
-    constructor(private cis: CommentIndexService) {}
+    constructor(private cis: CommentIndexService,
+        private mailService: MailService,
+    ) { }
 
     /**
      * 
@@ -26,7 +29,17 @@ export class CommentController {
     @Post()
     addComment(@Body() comment: Comment) {
         comment.date = Date.now();
-        return this.cis.index(comment);
+        return this.cis.index(comment).then(v => {
+            console.log(JSON.stringify(v));
+            return v;
+        }).then((v) => {
+            this.mailService.sendConformationEmailForComment(comment.email, comment.comment, v.body._id);
+        });
+    }
+
+    @Get('/mail')
+    sendEmail() {
+        return this.mailService.testEmail();
     }
 
     /**
