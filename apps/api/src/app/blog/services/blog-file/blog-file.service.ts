@@ -35,8 +35,6 @@ export class BlogFileService {
         const category = nameWithCategoryAndTags.slice(nameWithCategoryAndTags.indexOf('|') + 1, blogName.lastIndexOf('|'));
         const title = nameWithCategoryAndTags.slice(0, nameWithCategoryAndTags.indexOf('|'));
 
-        console.log(tags.split('#').slice(1));
-
         return {
             title: title,    
             category: category,

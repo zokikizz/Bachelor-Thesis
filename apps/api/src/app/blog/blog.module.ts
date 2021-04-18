@@ -24,14 +24,14 @@ export class BlogModule implements OnModuleInit {
 
     onModuleInit() {
         this.bis.blogMapping().then(() => {
-           // this.setUpBlogs();
+           this.setUpBlogs();
         });
     }
 
     async setUpBlogs() {
         const r = await this.bfs.readAllBlogs();
         // console.log(r);
-        const indexedBlogs = (await this.bis.bulk(r)).body.items
+        const indexedBlogs = (await this.bis.bulk(r)).body.items;
         // console.log(indexedBlogs);
         const errors = indexedBlogs.filter(i => i.index?.error).map(i => i.index.error)
         errors.length && errors.array.forEach(element => {

@@ -7,6 +7,17 @@ export class BlogController {
 
     constructor(private bis: BlogIndexService) {}
 
+
+    @Get('allTags') 
+    getAllTags() {
+        return this.bis.getTags();
+    }
+
+    @Get('allCategories') 
+    getAllCategories() {
+        return this.bis.getCategories();
+    }
+
     /**
      * 
      * @param searchString searching title or conent
@@ -64,22 +75,4 @@ export class BlogController {
     async getById(@Param('id') id) {
         return await this.bis.getById(id);
     }
-
-    /**
-     * 
-     * @returns list of tags
-     */
-    @Get('tags')
-    getTags(): Promise<{ tags: string[] }> {
-        return this.bis.getTags();
-    }
-
-    // /**
-    //  * 
-    //  * @returns list of categories
-    //  */
-    // @Get('categories')
-    // async getCategories(): Promise<{ categories: string[] }> {
-    //     return await this.bis.getCategories();
-    // }
 }

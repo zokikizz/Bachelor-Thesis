@@ -82,8 +82,12 @@ export class BlogIndexService implements IBlogIndex {
             size: size,
             body: {
                 query: {
-                    match: {
-                        category: category,
+                    query: {
+                        wildcard: {
+                            category: {
+                                value: '*' + category + '*',
+                            },
+                        }
                     }
                 }
             }
@@ -100,8 +104,10 @@ export class BlogIndexService implements IBlogIndex {
             size: size,
             body: {
                 query: {
-                    match: {
-                        tags: tag,
+                    wildcard: {
+                        tags: {
+                            value: '*' + tag + '*',
+                        },
                     }
                 }
             }
@@ -174,7 +180,6 @@ export class BlogIndexService implements IBlogIndex {
     }
 
     async getTags() {
-        return null;
         const request: RequestParams.Search = {
             index: this.esIndex,
             size: 0,
@@ -192,7 +197,6 @@ export class BlogIndexService implements IBlogIndex {
         let nonUniqueArraysOfTags = body.aggregations.tags.buckets.map(b => b.key.split('#').slice(1).flat(1))
 
         nonUniqueArraysOfTags = Array.prototype.concat.apply([], nonUniqueArraysOfTags)
-        console.log(nonUniqueArraysOfTags);
         nonUniqueArraysOfTags = [...new Set(nonUniqueArraysOfTags).values()];
         return { tags: nonUniqueArraysOfTags };
     }
