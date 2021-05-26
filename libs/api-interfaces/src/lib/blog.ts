@@ -1,6 +1,6 @@
 export class Blog {
-    
-    constructor(t: string = '', c: string = '', n: string = '') {
+
+    constructor(t = '', c = '', n= '') {
         this.title = t;
         this.content = c;
         this.name = n;
@@ -12,7 +12,7 @@ export class Blog {
     name?: string;
     // TODO: add imagePath and config for every blog
     imagePath?: string;
-    tags?: string[] | string;
+    tags?: string[];
     category?: string;
     blogFolder?: string;
     views?: number; // to extract most popular

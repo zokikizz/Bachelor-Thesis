@@ -16,13 +16,10 @@ export class BlogListComponent implements OnInit {
   constructor(private blogListService: BlogListService) { }
 
   ngOnInit(): void {
-    this.blogListService.getListOfTags().subscribe(v => this.tags = v.tags);
+    this.blogListService.getListOfTags().subscribe(v => { console.log(v); this.tags = v.tags;});
     this.blogListService.getListOfCategories().subscribe(v => this.categories = v.categories);
     this.blogListService.getBlogs().subscribe(v => this.blogs = v.list);
   }
 
-}
-function tap(): import("rxjs").OperatorFunction<{ total: number; list: Blog[]; }, unknown> {
-  throw new Error('Function not implemented.');
 }
 

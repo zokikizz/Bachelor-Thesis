@@ -20,7 +20,7 @@
 </div>
 
 <!-- Featured Image -->
-<div class="container" *ngIf="blog">
+<div class="container" *ngIf="blog && blog.imagePath">
     <img src="{{ 'http://localhost:3333/api/assets/' + blog.blogFolder + '/' + blog.imagePath }}" alt="">
 </div><!-- end container -->
 <!-- end Featured Image -->
@@ -34,29 +34,6 @@
                 <p>
                     {{ blog?.content }}
                 </p>
-
-
-                <!-- this part is static and rethink to us it for qoutes -->
-                <!-- <blockquote class="blockquote blockquote-style-3 margin-top-20">
-                    <p>Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim.</p>
-                    <footer class="blockquote-footer"><h6 class="font-family-tertiary font-small font-weight-normal uppercase">Alexander Warren</h6></footer>
-                </blockquote>
-
-                <p>Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo.</p>
-
-                <div class="margin-top-20 margin-bottom-20">
-                    <div class="row col-spacing-20">
-                        <div class="col-12 col-md-6">
-                            <img src="../../assets/images/col-2.jpg" alt="">
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <img src="../../assets/images/col-2.jpg" alt="">
-                        </div>
-                    </div>
-                </div>
-
-                <p>You can use the mark tag to <mark>highlight</mark> text. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt.</p> -->
-
             </div>
         </div><!-- end row -->
     </div><!-- end container -->

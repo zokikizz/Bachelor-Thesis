@@ -1,4 +1,4 @@
-import { BlogService } from './../../services/blog.service';
+import { BlogService } from '../../services/blog.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Blog } from '@blog-workspace/api-interfaces';
@@ -18,7 +18,6 @@ export class BlogDetailViewComponent implements OnInit {
 
   ngOnInit(): void {
     this.bs.getBlogById(this.blogId).subscribe(loadedBlog => {
-      console.log(`Loaded blog: ${JSON.stringify(loadedBlog)}`);
       this.blog = loadedBlog;
     });
   }

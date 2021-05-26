@@ -13,11 +13,11 @@ export class BlogListService {
   constructor(private http: HttpClient) { }
 
   getListOfTags(): Observable< { tags: string[]} > {
-    return this.http.get < { tags: string[] }>(`${this.url}/tags`);
+    return this.http.get < { tags: string[] }>(`${this.url}/allTags`);
   }
 
   getListOfCategories(): Observable<{ categories: { name: string, numberOfBlogs: number } []} > {
-    return this.http.get<{ categories: { name: string, numberOfBlogs: number } []}> (`${this.url}/categories`);
+    return this.http.get<{ categories: { name: string, numberOfBlogs: number } []}> (`${this.url}/allCategories`);
   }
 
 

@@ -4,10 +4,10 @@ import * as fs from 'fs';
 
 
 /**
- * File service for blog 
- * Every indexed blog must be in assets/blogs folder. Every blog should have seperated folder.
- * Inside folder there should be file with same name as parent folder (also that will be title of the blog) and with whatever extenxion (.md, .txt, .html, .xml)
- * That folder will also contain chiled folder for comments with name `comments` ???
+ * File service for blog
+ * Every indexed blog must be in assets/blogs folder. Every blog should have separated folder.
+ * Inside folder there should be file with same name as parent folder (also that will be title of the blog) and with whatever extension (.md, .txt, .html, .xml)
+ * That folder will also contain child folder for comments with name `comments` ???
  * To set category and tags for blogs - rethink how we will fix this problem
  */
 @Injectable()
@@ -36,9 +36,9 @@ export class BlogFileService {
         const title = nameWithCategoryAndTags.slice(0, nameWithCategoryAndTags.indexOf('|'));
 
         return {
-            title: title,    
+            title: title,
             category: category,
-            tags: tags,
+            tags: tags.split('#').splice(1),
             name: blogName,
             blogFolder: name,
             content: content.toString(),
@@ -48,19 +48,15 @@ export class BlogFileService {
         } as Blog;
     }
 
-    async readAllBlogs() {
+    async readAllBlogs(): Promise<Blog[]> {
         const dirs = await this.readAllDirs();
         const dirNames = dirs.map(d => d.name);
 
         const getContentOfAllBlogs = dirNames.map(async (d) => {
-            const f = await this.findBlog(d);
-            return f;
+          return await this.findBlog(d);
         });
 
-        const r = Promise.all(getContentOfAllBlogs);
-        return r;
+       return Promise.all(getContentOfAllBlogs);
     }
-
-    
 
 }

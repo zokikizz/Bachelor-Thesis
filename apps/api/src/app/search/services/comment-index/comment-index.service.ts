@@ -3,18 +3,17 @@ import { ICommentIndex } from './../../intefaces/comment-index-interface';
 import { Comment } from '@blog-workspace/api-interfaces';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { RequestParams } from '@elastic/elasticsearch';
 import { ListResponse } from '../../intefaces/list-response';
 import { SearchResponse } from '../../intefaces/elasticsearc-interface';
-
 @Injectable()
 export class CommentIndexService implements ICommentIndex {
 
     readonly esIndex = 'comment';
 
     constructor(private ess: ElasticsearchService) { }
-    
+
     async update(commentId: string, accepted: boolean): Promise<boolean | any> {
         const request: RequestParams.Update = {
             index: this.esIndex,
@@ -27,7 +26,7 @@ export class CommentIndexService implements ICommentIndex {
         }
         return await this.ess.update(request);
     }
-    
+
     async index(data: Comment): Promise<Comment | any> {
 
         const doc: RequestParams.Index = {
@@ -38,18 +37,18 @@ export class CommentIndexService implements ICommentIndex {
                 isApproved: false
             }
         }
-        
+
         const r = await this.ess.index(doc);
         return r;
     }
 
-    async list(blogId: string, startFrom: number = 0, size: number = 10): Promise<ListResponse<Comment>> {
+    async list(blogId: string, startFrom = 0, size = 10): Promise<ListResponse<Comment> | []> {
         /*query: {
             match: {
                 name: 'test',
             }
         }*/
-        
+
         const doc: RequestParams.Search = {
             index: this.esIndex,
             from: startFrom,
@@ -63,7 +62,7 @@ export class CommentIndexService implements ICommentIndex {
             }
         };
 
-        const r = await this.ess.search(doc);
-        return CommentAdapter.request(r.body as SearchResponse<Comment>);
+        const r = await this.ess.search(doc).catch(e => e.meta.statusCode);
+        return r === HttpStatus.NOT_FOUND ? Promise.resolve([]) :  CommentAdapter.request(r.body as SearchResponse<Comment>);
     }
 }

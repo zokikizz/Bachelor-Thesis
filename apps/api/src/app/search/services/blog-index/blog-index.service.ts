@@ -12,7 +12,7 @@ export class BlogIndexService implements IBlogIndex {
     readonly esIndex = "blog"
 
     constructor(private ess: ElasticsearchService) { }
-    
+
     async blogMapping() {
         const existsResponse = await this.ess.indices.exists({ index: 'blog' });
         if (existsResponse.statusCode !== HttpStatus.NOT_FOUND) {
@@ -67,10 +67,10 @@ export class BlogIndexService implements IBlogIndex {
                         fields: ['name', 'content']
                     }
                 }
-               
+
             }
         };
-        
+
         const response = await this.ess.search(request);
         return BlogAdapter.request(response.body as SearchResponse<Blog>);
     }
@@ -97,7 +97,7 @@ export class BlogIndexService implements IBlogIndex {
         return BlogAdapter.request(response.body as SearchResponse<Blog>);
     }
 
-    async searchByTag(tag: string, startFrom: number = 0, size: number = 10) {
+    async searchByTag(tag: string, startFrom = 0, size = 10) {
         const request: RequestParams.Search = {
             index: this.esIndex,
             from: startFrom,
@@ -127,7 +127,7 @@ export class BlogIndexService implements IBlogIndex {
         return { id, ...r.body._source };
     }
 
-    async list(startFrom: number = 0, size: number = 10) {
+    async list(startFrom = 0, size = 10) {
         const request: RequestParams.Search = {
             index: this.esIndex,
             from: startFrom,
@@ -191,10 +191,10 @@ export class BlogIndexService implements IBlogIndex {
                 }
             }
         };
-        
-        const { body } = (await this.ess.search(request));
 
-        let nonUniqueArraysOfTags = body.aggregations.tags.buckets.map(b => b.key.split('#').slice(1).flat(1))
+        const { body } = (await this.ess.search(request));
+        let nonUniqueArraysOfTags = body.aggregations.tags.buckets.map(v => v.key);
+
 
         nonUniqueArraysOfTags = Array.prototype.concat.apply([], nonUniqueArraysOfTags)
         nonUniqueArraysOfTags = [...new Set(nonUniqueArraysOfTags).values()];
@@ -214,8 +214,6 @@ export class BlogIndexService implements IBlogIndex {
             }
         }
         const { body } = (await this.ess.search(request));
-
-        console.log(body.aggregations.categories.buckets);
 
         return { categories: body.aggregations.categories.buckets.map(b => { return { name: b.key, numberOfBlogs: b.doc_count } }) };
 

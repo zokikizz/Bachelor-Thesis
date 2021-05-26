@@ -1,13 +1,13 @@
 
 <!-- Comments section -->
-<div class="section bg-grey">
+<div class="section bg-grey" *ngIf='commentList && commentList.length'>
     <div class="container">
         <div class="row">
             <div class="col-12 col-md-10 offset-md-1">
                 <h4 class="font-weight-normal margin-bottom-50">Comments</h4>
 
                 <blog-workspace-comment *ngFor="let comment of commentList" [comment]="comment"></blog-workspace-comment>
-               
+
             </div>
         </div><!-- end row -->
     </div><!-- end container -->
