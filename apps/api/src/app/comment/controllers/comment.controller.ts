@@ -12,19 +12,19 @@ export class CommentController {
     ) { }
 
     /**
-     * 
-     * @param param 
+     *
+     * @param param
      * @returns list of the comments Comments[]
      */
-    @Get('list/:blogId') 
+    @Get('list/:blogId')
     getComments(@Param('blogId') blogId: string) {
         return this.cis.list(blogId);
     }
 
     /**
-     * 
+     *
      * @param comment new comment that will be added to the blog
-     * @returns added comment 
+     * @returns added comment
      */
     @Post()
     addComment(@Body() comment: Comment) {
@@ -37,19 +37,15 @@ export class CommentController {
         });
     }
 
-    @Get('/mail')
-    sendEmail() {
-        return this.mailService.testEmail();
-    }
-
     /**
      * Endpoint for email where user will send anwser should comment be displayed or not
      * @param status status should comment be rejacted or accaped and displayed on blog
      * @param commentId commentId that should be updated
      * @returns nothing
      */
-    @Put('update/:commentId/:status')
-    updateCommentStatus(@Param('status') status: 'accepted' | 'rejacted', @Param('commentId') commentId: string) {
-        return this.cis.update(commentId, status === 'accepted');
+    @Get('update/:commentId/:status')
+    updateCommentStatus(@Param('status') status: 'accepted' | 'rejected', @Param('commentId') commentId: string) {
+        return this.cis.update(commentId, status === 'accepted').then(
+          () => `Comment status successfully updated`);
     }
 }

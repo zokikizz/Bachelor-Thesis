@@ -12,6 +12,7 @@ import { CreateCommentComponent } from './components/create-comment/create-comme
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommentComponent } from './components/comment/comment.component';
 import { CommentListComponent } from './components/comment-list/comment-list.component';
+import { PaginationComponent } from './components/pagination/pagination.component';
 
 
 
@@ -25,7 +26,8 @@ import { CommentListComponent } from './components/comment-list/comment-list.com
     BlogDetailViewComponent,
     CreateCommentComponent,
     CommentComponent,
-    CommentListComponent
+    CommentListComponent,
+    PaginationComponent
   ],
   imports: [
     CommonModule,

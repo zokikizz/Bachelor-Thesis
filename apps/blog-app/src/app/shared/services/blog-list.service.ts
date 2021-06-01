@@ -21,7 +21,9 @@ export class BlogListService {
   }
 
 
-  getBlogs(): Observable<{ total: number, list: Blog[] }> {
-    return this.http.get<{ total: number, list: Blog[] }>(`${this.url}/list`);
+  getBlogs(startFrom?): Observable<{ total: number, list: Blog[] }> {
+    const url = `${this.url}/list${ startFrom ? `?startFrom=${startFrom}`: ``}`;
+    console.log(url);
+    return this.http.get<{ total: number, list: Blog[] }>(url);
   }
 }

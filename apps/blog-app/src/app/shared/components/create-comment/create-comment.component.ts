@@ -1,27 +1,25 @@
 import { CommentService } from './../../services/comment.service';
 import { ActivatedRoute } from '@angular/router';
-import { BlogService } from './../../services/blog.service';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Comment } from '@blog-workspace/api-interfaces';
+import { Observable } from 'rxjs';
+import { delay, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'blog-workspace-create-comment',
   templateUrl: './create-comment.component.html',
   styleUrls: ['./create-comment.component.scss']
 })
-export class CreateCommentComponent implements OnInit {
+export class CreateCommentComponent {
 
   createCommentForm: FormGroup;
+  newCommentAdded = false;
 
   constructor(private fb: FormBuilder,
     private route: ActivatedRoute,
     private cs: CommentService) {
     this.createForm();
-  }
-
-  ngOnInit(): void {
-    
   }
 
   createForm() {
@@ -41,10 +39,12 @@ export class CreateCommentComponent implements OnInit {
       date: Date.now()
     };
 
-    this.cs.createComment(newComment).subscribe(() => {
-      this.createCommentForm.reset();
-      this.cs.newCommentAddedEvent();
-    });
+    this.cs.createComment(newComment).pipe(
+      tap(() => this.createCommentForm.reset()),
+      tap(() => this.newCommentAdded = true),
+      delay(2000),
+      tap(() => this.newCommentAdded = false)
+    ).subscribe();
   }
 
 }

@@ -15,7 +15,6 @@ export class CommentListComponent implements OnInit {
   constructor(private cs: CommentService, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
-    this.cs.refreshCommentListObservable.subscribe(() => this.loadCommentList());
     this.loadCommentList();
   }
 

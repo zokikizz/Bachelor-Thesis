@@ -55,8 +55,11 @@ export class CommentIndexService implements ICommentIndex {
             size: size,
             body: {
                 query: {
-                    match: {
-                        blogId: blogId
+                    bool: {
+                      must: [
+                        { match: { "blogId": blogId }},
+                        { match: { "isApproved": true }}
+                    ]
                     }
                 },
             }

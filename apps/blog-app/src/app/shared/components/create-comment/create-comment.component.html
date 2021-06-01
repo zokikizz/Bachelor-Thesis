@@ -15,6 +15,11 @@
                     </div>
                     <textarea name="comment" placeholder="Comment" formControlName="comment"></textarea>
                     <button class="button button-lg button-outline-grey" (click)="createComment()">Post Comment</button>
+
+
+                  <div *ngIf='newCommentAdded' class="row margin-left-10">
+                    <h6 class="font-weight-normal">Your comment is successfully sent to blog owner on review.</h6>
+                  </div>
                 </form>
             </div>
         </div><!-- end row -->

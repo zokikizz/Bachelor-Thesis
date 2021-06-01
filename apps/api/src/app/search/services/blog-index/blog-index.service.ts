@@ -55,7 +55,7 @@ export class BlogIndexService implements IBlogIndex {
         }
     }
 
-    async search(searchString: string, startFrom: number = 0, size: number = 10): Promise<any> {
+    async search(searchString: string, startFrom = 0, size = 10): Promise<any> {
         const request: RequestParams.Search = {
             index: this.esIndex,
             from: startFrom,
@@ -75,7 +75,7 @@ export class BlogIndexService implements IBlogIndex {
         return BlogAdapter.request(response.body as SearchResponse<Blog>);
     }
 
-    async searchByCategory(category: string, startFrom: number = 0, size: number = 10) {
+    async searchByCategory(category: string, startFrom = 0, size = 10) {
         const request: RequestParams.Search = {
             index: this.esIndex,
             from: startFrom,
