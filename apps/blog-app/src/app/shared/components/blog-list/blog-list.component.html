@@ -5,6 +5,9 @@
             <!-- Blog Posts -->
             <div class="col-12 col-lg-8 order-lg-2">
                 <blog-workspace-blog *ngFor="let blog of blogs" [blog]="blog" ></blog-workspace-blog>
+                <blog-workspace-pagination [totalNumberOfBlogs]='totalNumberOfBlogs'
+                  (changePage)='changeOfPage($event)'
+                ></blog-workspace-pagination>
             </div>
 
             <!-- TODO: CSS problems solve -->
@@ -17,7 +20,7 @@
                 <div class="sidebar-box text-center">
                     <h6 class="font-small font-weight-normal uppercase">About Me</h6>
                     <!-- src="../assets/images/img-circle-medium.jpg" -->
-                    <img class="img-circle-md margin-bottom-20 img-circle" 
+                    <img class="img-circle-md margin-bottom-20 img-circle"
                     src="https://scontent.fbeg1-1.fna.fbcdn.net/v/t31.0-8/10443010_777912065600596_5943032417824840358_o.jpg?_nc_cat=111&ccb=1-3&_nc_sid=174925&_nc_ohc=URbXVvUM0jEAX-7Cteo&_nc_ht=scontent.fbeg1-1.fna&oh=53b50be05721176e8c2bdae15c164b60&oe=606F0F15"
                       alt="">
                     <p>Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</p>
@@ -33,7 +36,7 @@
                     <h6 class="font-small font-weight-normal uppercase">Categories</h6>
                     <ul class="list-category">
                         <li *ngFor="let category of categories"><a href="#">{{ category.name }} <span>{{category.numberOfBlogs}}</span></a></li>
-                        
+
                     </ul>
                 </div>
                 <!-- Sidebar box 3 - Popular Posts -->
@@ -99,4 +102,3 @@
         </div>
     </div>
 </div>
-            
