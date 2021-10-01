@@ -1,6 +1,6 @@
 <div class="margin-bottom-50">
     <div class="hoverbox-8">
-        <a href="#">
+        <a [routerLink]="'/blog/' + blog.id">
             <img src="{{ 'http://localhost:3333/api/assets/' + blog.blogFolder + '/' + blog.imagePath }}" alt="">
         </a>
     </div>
